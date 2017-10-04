@@ -8,10 +8,7 @@ using namespace std;
 const int N = 1e5 + 10;
 
 struct node{
-  
   int freq[9];
-
-  
   node(){
     memset(freq,0,sizeof freq);
   }
@@ -24,8 +21,14 @@ struct node{
       }
       return old;
   }
-  
 };
+
+int add(int x){
+  if(x >= 9){
+    x -= 9;
+  }
+  return x;
+}
 
 node st[N << 2];
 int lazy[N << 2];
@@ -39,20 +42,17 @@ node merge(const node &a, const node &b){
   }
   return c;
 }
-
-
 void propagate(int id, int l, int r){
   if(lazy[id] == 0){
     return;
   }
-  
   node tmp = st[id];
   for(int i = 0; i < 9; i++){
-    st[id].freq[(i + lazy[id]) % 9] = tmp.freq[i];
+    st[id].freq[add(i + lazy[id])] = tmp.freq[i];
   }
   if(l != r){
-    lazy[esq(id)] = (lazy[esq(id)] + lazy[id]) % 9;
-    lazy[dir(id)] = (lazy[dir(id)] + lazy[id]) % 9;
+    lazy[esq(id)] = add(lazy[esq(id)] + lazy[id]);    
+    lazy[dir(id)] = add(lazy[dir(id)] + lazy[id]);
   }
   lazy[id] = 0;
 }
@@ -62,19 +62,15 @@ void build(int id, int l, int r){
     st[id].freq[1] = 1;
     return;
   }
-  
   int mid = (l + r) >> 1;
-  
   build(esq(id), l, mid);
   build(dir(id), mid + 1, r);
-  
   st[id] = merge(st[esq(id)], st[dir(id)]);
   
 }
 
 void update(int id, int l, int r, int i, int j, int x){
   propagate(id,l,r);
-  
   if(l > j || r < i){
     return;
   }
@@ -83,33 +79,25 @@ void update(int id, int l, int r, int i, int j, int x){
     propagate(id,l,r);
     return;
   }
-  
   int mid = (l + r) >> 1;
   update(esq(id),l, mid, i, j, x);
   update(dir(id), mid + 1, r, i, j, x);
-  
   st[id] = merge(st[esq(id)], st[dir(id)]);
 }  
 
 
 node query(int id, int l, int r, int i, int j){
   propagate(id,l,r);
-  
   if(l > j || r < i){
     return node();
   }
   if(l >= i && r <= j){
     return st[id];
   }
-  
   int mid = (l + r) >> 1;
-  
   node a = query(esq(id),l, mid, i, j);
   node b = query(dir(id), mid + 1, r, i, j);
-  
-  
   return merge(a,b);
-  
 }
 
 int main()
